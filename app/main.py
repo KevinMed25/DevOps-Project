@@ -2,7 +2,10 @@ from flask import Flask, jsonify
 import os
 from dotenv import load_dotenv
 from app.routes import register_routes
+from app.utils.db import init_db
+from app.models import Driver
 
+init_db()
 load_dotenv()
 
 app = Flask(__name__)
