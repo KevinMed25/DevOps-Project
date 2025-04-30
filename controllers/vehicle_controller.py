@@ -23,3 +23,13 @@ def get_drivers():
     vehicle_service = VehicleService()
     drivers = vehicle_service.getAllVehicles()
     return drivers, HTTPStatus.OK
+
+@vehicle_blueprint.route('/<int:id>', methods=['PUT'])
+def update_vehicle(id):
+
+    vehicle = request.get_json()
+    vehicle_service = VehicleService()
+    if not vehicle:
+        return jsonify({"error": "Vehicle not found"}), HTTPStatus.NOT_FOUND
+    resp = vehicle_service.updateVehicle(VehicleSchema(id=id, **vehicle))
+    return jsonify(resp), HTTPStatus.OK
