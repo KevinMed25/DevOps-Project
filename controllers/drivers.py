@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-from app.services import DriversService
+from services import DriversService
 from http import HTTPStatus
-from app.models.drivers import DriverSchema
+from models.drivers import DriverSchema
 
 
 drivers_blueprint = Blueprint('drivers', __name__)

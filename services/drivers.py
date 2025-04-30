@@ -1,6 +1,6 @@
-from app.utils.db import get_db
-from app.models.drivers import Driver
-from app.models.drivers import DriverSchema
+from utils.db import get_db
+from models.drivers import Driver
+from models.drivers import DriverSchema
 
 class DriversService:
 
