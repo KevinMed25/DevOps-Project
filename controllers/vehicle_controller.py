@@ -17,3 +17,9 @@ def create_vehicle():
     vehicle_service = VehicleService()
     resp = vehicle_service.createVehicle(VehicleSchema(**data))
     return jsonify(resp), HTTPStatus.CREATED
+
+@vehicle_blueprint.route('/', methods=['GET'])
+def get_drivers():
+    vehicle_service = VehicleService()
+    drivers = vehicle_service.getAllVehicles()
+    return drivers, HTTPStatus.OK
