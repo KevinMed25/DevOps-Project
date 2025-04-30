@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Date, String
-from app.utils.db import Base
+from utils.db import Base
 
 class Driver(Base):
     __tablename__ = "drivers"
