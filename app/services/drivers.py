@@ -6,7 +6,17 @@ class DriversService:
 
     def getAllDrivers(self) -> list:
         db = next(get_db())
-        return db.query(Driver).all()
+        drivers = db.query(Driver).all()
+        return list(map(lambda driver: {
+            "id": driver.id,
+            "name": driver.name,
+            "birthday": driver.birthday,
+            "curp": driver.curp,
+            "address": driver.address,
+            "monthly_salary": driver.monthly_salary,
+            "hire_date": driver.hire_date,
+            "license_number": driver.license_number
+        }, drivers))
     
     def createDriver(self, driver: DriverSchema):
         db = next(get_db())

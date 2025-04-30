@@ -9,8 +9,8 @@ drivers_blueprint = Blueprint('drivers', __name__)
 @drivers_blueprint.route('/', methods=['GET'])
 def get_drivers():
     driversService = DriversService()
-    resp = driversService.getAllDrivers()
-    return jsonify(resp), HTTPStatus.OK
+    drivers = driversService.getAllDrivers()
+    return drivers, HTTPStatus.OK
 
 @drivers_blueprint.route('/', methods=['POST'])
 def create_driver():
@@ -28,4 +28,3 @@ def update_driver(id):
         return jsonify({"error": "Driver not found"}), HTTPStatus.NOT_FOUND
     resp = driversService.updateDriver(DriverSchema(id=id, **driver))
     return jsonify(resp), HTTPStatus.OK
-
