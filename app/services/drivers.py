@@ -10,9 +10,6 @@ class DriversService:
     
     def createDriver(self, driver: DriverSchema):
         db = next(get_db())
-        import logging
-        logging.warning("Driver: %s", driver)
-        logging.warning("Driver ID: %s", driver.id)
         driver = Driver(
             name=driver.name,
             birthday=driver.birthday,
