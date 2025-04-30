@@ -7,5 +7,5 @@ drivers_blueprint = Blueprint('drivers', __name__)
 @drivers_blueprint.route('/', methods=['GET'])
 def get_drivers():
     driversService = DriversService()
-    resp = driversService.getAllDrivers()
-    return jsonify(resp), HTTPStatus.OK
+    drivers = driversService.getAllDrivers()
+    return drivers, HTTPStatus.OK
