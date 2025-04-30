@@ -1,4 +1,0 @@
-flask
-dotenv
-flask_sqlalchemy
-pymysql
