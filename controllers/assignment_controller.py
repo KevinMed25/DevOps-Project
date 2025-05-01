@@ -32,3 +32,8 @@ def update_assignment(id):
     assignment = AssignmentSchema(id=id, **data)
     updated_id = service.updateAssignment(assignment)
     return jsonify({"id": updated_id}), HTTPStatus.OK
+
+#Eliminar asigment
+@assignment_blueprint.route('/<int:id>', methods=['DELETE'])
+def delete_assignment(id):
+    return service.deleteAssignment(id)
