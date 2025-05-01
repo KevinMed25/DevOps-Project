@@ -28,3 +28,12 @@ def update_driver(id):
         return jsonify({"error": "Driver not found"}), HTTPStatus.NOT_FOUND
     resp = driversService.updateDriver(DriverSchema(id=id, **driver))
     return jsonify(resp), HTTPStatus.OK
+
+@drivers_blueprint.route('/<int:id>', methods=['DELETE'])
+def delete_driver(id):
+    driversService = DriversService()
+    try:
+        result = driversService.deleteDriver(id)
+        return result
+    except ValueError as e:
+        return jsonify({"error": str(e)}), HTTPStatus.NOT_FOUND
