@@ -5,6 +5,48 @@ from models.routes import RouteSchema
 
 rutas_blueprint = Blueprint('rutas', __name__)
 
+@rutas_blueprint.route('/<int:route_id>', methods=['GET'])
+def get_route(route_id):
+    ruta_service = RouteService()
+    
+    try:
+        route = ruta_service.get_route_by_id(route_id)
+        return jsonify({
+            "id": route.id,
+            "name": route.name,
+            "date": route.date.isoformat() if route.date else None,
+            "origin_lat": route.origin_lat,
+            "origin_lng": route.origin_lng,
+            "destination_lat": route.destination_lat,
+            "destination_lng": route.destination_lng,
+            "status": route.status,
+            "problem_description": route.problem_description,
+            "comments": route.comments,
+            "vehicle_id": route.vehicle_id,
+            "driver_id": route.driver_id
+        }), HTTPStatus.OK
+    except ValueError as e:
+        return jsonify({"error": str(e)}), HTTPStatus.NOT_FOUND
+
+@rutas_blueprint.route('/', methods=['GET'])
+def get_all_routes():
+
+    ruta_service = RouteService()
+    routes = ruta_service.get_all_routes()
+    
+    return jsonify([{
+        "id": route.id,
+        "name": route.name,
+        "date": route.date.isoformat() if route.date else None,
+        "origin_lat": route.origin_lat,
+        "origin_lng": route.origin_lng,
+        "destination_lat": route.destination_lat,
+        "destination_lng": route.destination_lng,
+        "status": route.status,
+        "vehicle_id": route.vehicle_id,
+        "driver_id": route.driver_id
+    } for route in routes]), HTTPStatus.OK
+
 @rutas_blueprint.route('/', methods=['POST'])
 def create_route():
     route_data = request.get_json()
