@@ -26,3 +26,13 @@ def update_route(route_id):
         return jsonify({"id": updated_route}), HTTPStatus.OK
     except ValueError as e:
         return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
+
+@rutas_blueprint.route('/<int:route_id>', methods=['DELETE'])
+def delete_route(route_id):
+    ruta_service = RouteService()
+    
+    try:
+        ruta_service.delete_route(route_id)
+        return jsonify({"message": "Ruta eliminada"}), HTTPStatus.OK
+    except ValueError as e:
+        return jsonify({"error": str(e)}), HTTPStatus.NOT_FOUND
