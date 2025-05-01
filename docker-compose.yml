@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: fleet_management
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: securepassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - fleet-network
+
+  app:
+    build: .
+    container_name: fleet_app
+    environment:
+      - DB_HOST=db
+      - DB_USER=appuser
+      - DB_PASSWORD=securepassword
+      - DB_NAME=fleet_management
+    ports:
+      - "5001:5000" 
+    depends_on:
+      - db
+    networks:
+      - fleet-network
+
+volumes:
+  mysql_data:
+
+networks:
+  fleet-network:
+    driver: bridge
