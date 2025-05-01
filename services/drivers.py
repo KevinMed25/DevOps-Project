@@ -48,3 +48,23 @@ class DriversService:
             db.commit()
             db.refresh(driverToUpdate)
         return driverToUpdate.id
+
+    def deleteDriver(self, driver_id: int):
+        db = next(get_db())
+        driver = db.query(Driver).get(driver_id)
+        
+        if not driver:
+            raise ValueError("Conductor no encontrado")
+        
+        # Verificar asignaciones activas
+        from models.assignments import Assignment
+        active_assignments = db.query(Assignment).filter(
+            Assignment.driver_id == driver_id
+        ).count()
+        
+        if active_assignments > 0:
+            raise ValueError("El conductor tiene asignaciones activas")
+        
+        db.delete(driver)
+        db.commit()
+        return {"message": "Conductor eliminado exitosamente", "id": driver_id}
