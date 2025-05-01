@@ -39,3 +39,35 @@ class RouteService:
         db.commit()
         db.refresh(new_route)
         return new_route.id
+
+    def update_route(self, route_id: int, route_data: RouteSchema):
+        db = next(get_db())
+        
+        route = db.query(Route).filter(Route.id == route_id).first()
+        if not route:
+            raise ValueError("Ruta no encontrada")
+        
+        # Validar cambios en fecha/vehículo
+        if route_data.date != route.date or route_data.vehicle_id != route.vehicle_id:
+            existing_route = db.query(Route).filter(
+                Route.vehicle_id == route_data.vehicle_id,
+                Route.date == route_data.date,
+                Route.id != route_id
+            ).first()
+            
+            if existing_route:
+                raise ValueError("El vehículo ya tiene otra ruta programada para la nueva fecha")
+        
+        # Actualizar campos
+        route.name = route_data.name
+        route.date = route_data.date
+        route.origin_lat = route_data.origin_lat
+        route.origin_lng = route_data.origin_lng
+        route.destination_lat = route_data.destination_lat
+        route.destination_lng = route_data.destination_lng
+        route.status = route_data.status or route.status
+        route.problem_description = route_data.problem_description
+        route.comments = route_data.comments
+        
+        db.commit()
+        return route.id

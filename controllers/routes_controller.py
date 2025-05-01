@@ -15,3 +15,14 @@ def create_route():
         return jsonify({"id": new_route}), HTTPStatus.CREATED
     except ValueError as e:
         return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
+    
+@rutas_blueprint.route('/<int:route_id>', methods=['PUT'])
+def update_route(route_id):
+    route_data = request.get_json()
+    ruta_service = RouteService()
+    
+    try:
+        updated_route = ruta_service.update_route(route_id, RouteSchema(**route_data))
+        return jsonify({"id": updated_route}), HTTPStatus.OK
+    except ValueError as e:
+        return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
