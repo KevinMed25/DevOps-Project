@@ -33,3 +33,8 @@ def update_vehicle(id):
         return jsonify({"error": "Vehicle not found"}), HTTPStatus.NOT_FOUND
     resp = vehicle_service.updateVehicle(VehicleSchema(id=id, **vehicle))
     return jsonify(resp), HTTPStatus.OK
+
+@vehicle_blueprint.route('/<int:id>', methods=['DELETE'])
+def delete_vehicle(id):
+    vehicle_service = VehicleService()
+    return vehicle_service.deleteVehicle(id)

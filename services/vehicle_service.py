@@ -1,4 +1,5 @@
 from utils.db import get_db
+from flask import jsonify
 from models.vehiculo import Vehicle
 from models.vehiculo import VehicleSchema
 
@@ -51,3 +52,13 @@ class VehicleService:
             db.commit()
             db.refresh(vehicle_to_update)
         return vehicle_to_update.id
+    
+    def deleteVehicle(self, vehicle_id: int):
+        db = next(get_db())
+        vehicle_to_delete = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+        if vehicle_to_delete:
+            db.delete(vehicle_to_delete)
+            db.commit()
+            return jsonify({"message": "Vehículo eliminado correctamente", "id": vehicle_id}), 200
+        return jsonify({"error": "Vehículo no encontrado"}), 404
+
