@@ -16,3 +16,8 @@ def create_assignment():
     assignment = AssignmentSchema(**data)
     assignment_id = service.createAssignment(assignment)
     return jsonify({"id": assignment_id}), HTTPStatus.CREATED
+
+#Consultar asignaciones de vehículo
+@assignment_blueprint.route('/', methods=['GET'])
+def get_assignments():
+    return jsonify(service.getAllAssignments()), HTTPStatus.OK
