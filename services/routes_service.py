@@ -71,3 +71,16 @@ class RouteService:
         
         db.commit()
         return route.id
+
+def delete_route(self, route_id: int):
+    db = next(get_db())
+    
+    route = db.query(Route).filter(Route.id == route_id).first()
+    if not route:
+        raise ValueError("Ruta no encontrada")
+    
+    if route.status == "completed":
+        raise ValueError("No se puede eliminar una ruta completada")
+    
+    db.delete(route)
+    db.commit()
