@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models.vehiculo import VehicleSchema
+from models.vehicle import VehicleSchema
 from services import VehicleService
 from http import HTTPStatus
 
@@ -8,33 +8,65 @@ vehicle_blueprint = Blueprint('vehicles',__name__)
 
 @vehicle_blueprint.route('/', methods=['POST'])
 def create_vehicle():
-    data = request.get_json()
-    # Data validation
-    required_fields = ['brand', 'model', 'vin', 'license_plate', 'purchase_date', 'cost', 'entry_date']
-    if not all(field in data for field in required_fields):
-        return jsonify({'error': 'Missing required fields'}), 400
+
+    try: 
+
+        if not request.is_json:
+            return jsonify({'message': 'Se esperaba un cuerpo de solicitud JSON'}), HTTPStatus.BAD_REQUEST
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'message': 'Cuerpo de la solicitud vacío'}), HTTPStatus.BAD_REQUEST
+
+        # Data validation
+        required_fields = ['brand', 'model', 'vin', 'license_plate', 'purchase_date', 'cost', 'entry_date']
+        
+        missing_fields = [field for field in required_fields if field not in data]
+
+        if missing_fields:
+            return jsonify(
+                {
+                    "message": "faltan campos requeridos",
+                    "missing_fields": missing_fields
+                }), HTTPStatus.BAD_REQUEST
+        
+        vehicle_service = VehicleService()
+        vehicle_id = vehicle_service.createVehicle(VehicleSchema(**data))
+        
+        return jsonify({"message":"vehículo creado exitosamente", "id": vehicle_id}), HTTPStatus.CREATED
     
-    vehicle_service = VehicleService()
-    resp = vehicle_service.createVehicle(VehicleSchema(**data))
-    return jsonify(resp), HTTPStatus.CREATED
+    except Exception as e: 
+        return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/', methods=['GET'])
 def get_drivers():
-    vehicle_service = VehicleService()
-    drivers = vehicle_service.getAllVehicles()
-    return drivers, HTTPStatus.OK
+    try:
+        vehicle_service = VehicleService()
+        vehicles = vehicle_service.getAllVehicles()
+        return jsonify({"message":"vehículos obtenidos exitosamente", "data": vehicles}), HTTPStatus.OK
+    except Exception as e: 
+        return jsonify({"message":"error al obtener los vehículos","error":str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['PUT'])
 def update_vehicle(id):
-
-    vehicle = request.get_json()
-    vehicle_service = VehicleService()
-    if not vehicle:
-        return jsonify({"error": "Vehicle not found"}), HTTPStatus.NOT_FOUND
-    resp = vehicle_service.updateVehicle(VehicleSchema(id=id, **vehicle))
-    return jsonify(resp), HTTPStatus.OK
+    try:
+        data = request.get_json()
+        if not data: 
+            return jsonify({"message": "Cuerpo de la solicitud vacío"}), HTTPStatus.BAD_REQUEST
+        
+        vehicle_service = VehicleService()
+        update_vehicle_id = vehicle_service.updateVehicle(VehicleSchema(id=id, **data))
+        return jsonify({"message":"vehiculo actualizado exitosamente","id":update_vehicle_id}), HTTPStatus.OK
+    except Exception as e: 
+        return jsonify({"message": "error al actualizar el vehículo"}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['DELETE'])
 def delete_vehicle(id):
-    vehicle_service = VehicleService()
-    return vehicle_service.deleteVehicle(id)
+    try: 
+
+        vehicle_service = VehicleService()
+        result = vehicle_service.deleteVehicle(id)
+        return result
+    except Exception as e: 
+        return jsonify({"message": "error al eliminar el vehículo"}), HTTPStatus.INTERNAL_SERVER_ERROR

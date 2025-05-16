@@ -1,7 +1,7 @@
 from utils.db import get_db
 from flask import jsonify
-from models.vehiculo import Vehicle
-from models.vehiculo import VehicleSchema
+from models.vehicle import Vehicle
+from models.vehicle import VehicleSchema
 
 class VehicleService:
 
