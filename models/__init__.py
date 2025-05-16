@@ -1,3 +1,3 @@
 from .drivers import Driver
-from .vehiculo import Vehicle
+from .vehicle import Vehicle
 from .routes import Route

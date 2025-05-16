@@ -1,7 +1,7 @@
 from utils.db import get_db
 from models.routes import Route, RouteSchema
 from models.drivers import Driver
-from models.vehiculo import Vehicle
+from models.vehicle import Vehicle
 
 class RouteService:
     
