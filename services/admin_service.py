@@ -5,15 +5,8 @@ from werkzeug.security import generate_password_hash
 
 class AdminService:
 
-    def registerAdmin(self, admin: AdminSchema):
+    def register_admin(self, admin: AdminSchema):
         db = next(get_db())
-
-        if admin.invite_code != "INVITE-1234":
-            return jsonify({"error": "Código de invitación inválido"}), 403
-
-        existing_admin = db.query(Admin).filter(Admin.email == admin.email).first()
-        if existing_admin:
-            return jsonify({"error": "El correo ya está registrado"}), 409
 
         new_admin = Admin(
             email=admin.email,
@@ -25,4 +18,14 @@ class AdminService:
         db.commit()
         db.refresh(new_admin)
 
-        return jsonify({"message": "Administrador registrado con éxito", "email": new_admin.email}), 201
+        return new_admin
+
+    def find_admin_by_email(self, email: str):
+        db = next(get_db())
+        admin = db.query(Admin).filter(Admin.email == email).first()
+        return admin
+    
+    def find_admin_by_id(self, admin_id: int):
+        db = next(get_db())
+        admin = db.query(Admin).filter(Admin.id == admin_id).first()
+        return admin    
