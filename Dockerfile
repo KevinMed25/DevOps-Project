@@ -1,11 +1,17 @@
 # Usa una imagen oficial de Python
-FROM python:3.11-slim
+FROM python:3.12-alpine
 
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /app
 
+# Instala netcat para el script wait-for-it
+RUN apk add --no-cache bash
+
 # Copia los archivos necesarios
 COPY . /app
+
+# Hace ejecutable el script wait-for-it
+RUN chmod +x wait-for-it.sh
 
 # Instala dependencias
 RUN pip install --upgrade pip \
