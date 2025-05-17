@@ -3,6 +3,8 @@ from models.admin import AdminSchema
 import re 
 from services.admin_service import AdminService
 from http import HTTPStatus
+from werkzeug.security import check_password_hash
+from flask_jwt_extended import create_access_token
 
 admin_blueprint = Blueprint('admins', __name__)
 
@@ -39,3 +41,28 @@ def register_admin():
     return jsonify({"message": "Administrador registrado con éxito", "id": new_admin.id}), HTTPStatus.CREATED
 
 
+@admin_blueprint.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    # Validar campos obligatorios
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Email y contraseña son requeridos"}), 400
+    
+    # Buscar admin por email
+    admin_service = AdminService()
+    admin = admin_service.find_admin_by_email(data['email'])
+    
+    # Verificar si existe y la contraseña es correcta
+    if not admin or not check_password_hash(admin.password, data['password']):
+        return jsonify({"error": "Credenciales inválidas"}), 401
+    
+    # Generar token JWT
+    access_token = create_access_token(identity=str(admin.id))
+    
+    return jsonify({
+        "message": "Login exitoso",
+        "access_token": access_token,
+        "admin_id": admin.id,
+        "email": admin.email
+    }), HTTPStatus.OK
