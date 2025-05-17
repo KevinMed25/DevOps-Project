@@ -2,11 +2,13 @@ from flask import Blueprint, request, jsonify
 from models.vehicle import VehicleSchema
 from services import VehicleService
 from http import HTTPStatus
+from utils.auth_middleware import admin_required
 
 
 vehicle_blueprint = Blueprint('vehicles',__name__)
 
 @vehicle_blueprint.route('/', methods=['POST'])
+@admin_required()
 def create_vehicle():
 
     try: 
@@ -40,6 +42,7 @@ def create_vehicle():
         return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/', methods=['GET'])
+@admin_required()
 def get_vehicles():
     try:
         vehicle_service = VehicleService()
@@ -49,6 +52,7 @@ def get_vehicles():
         return jsonify({"message":"error al obtener los vehículos","error":str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['GET'])
+@admin_required()
 def get_vehicle(id): 
     try:
         vehicle_service = VehicleService()
@@ -60,6 +64,7 @@ def get_vehicle(id):
         return jsonify({"message":"error al obtener el vehículo","error":str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['PUT'])
+@admin_required()
 def update_vehicle(id):
     try:
         data = request.get_json()
@@ -77,6 +82,7 @@ def update_vehicle(id):
         return jsonify({"message": "error al actualizar el vehículo"}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['DELETE'])
+@admin_required()
 def delete_vehicle(id):
     try: 
 
