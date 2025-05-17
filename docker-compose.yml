@@ -1,14 +1,9 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
     container_name: mysql_db
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: fleet_management
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: securepassword
+    env_file:
+      - .env
     ports:
       - "3306:3306"
     volumes:
@@ -18,16 +13,14 @@ services:
 
   app:
     build: .
-    container_name: fleet_app
-    environment:
-      - DB_HOST=db
-      - DB_USER=appuser
-      - DB_PASSWORD=securepassword
-      - DB_NAME=fleet_management
+    container_name: app
+    env_file:
+      - .env
     ports:
       - "5001:5000" 
     depends_on:
       - db
+    command: ["./wait-for-it.sh", "db:3306", "--timeout=30", "--", "flask", "run"]
     networks:
       - fleet-network
 
