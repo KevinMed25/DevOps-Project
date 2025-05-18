@@ -1,6 +1,7 @@
 from utils.db import get_db
 from models.drivers import Driver
 from models.drivers import DriverSchema
+from models.assignment import Assignment
 
 class DriversService:
 
@@ -56,8 +57,6 @@ class DriversService:
         if not driver:
             raise ValueError("Conductor no encontrado")
         
-        # Verificar asignaciones activas
-        from models.assignments import Assignment
         active_assignments = db.query(Assignment).filter(
             Assignment.driver_id == driver_id
         ).count()

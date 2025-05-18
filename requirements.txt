@@ -3,3 +3,4 @@ dotenv
 flask_sqlalchemy
 pymysql
 cryptography
+flask_jwt_extended
