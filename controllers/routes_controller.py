@@ -153,7 +153,6 @@ def update_route(route_id):
         error_message = str(e)
         status_code = HTTPStatus.BAD_REQUEST
         
-        # Puedes personalizar códigos de estado basado en el mensaje de error
         if "no existe" in error_message.lower():
             status_code = HTTPStatus.NOT_FOUND
         elif "no está asignado" in error_message.lower():
