@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey
+from sqlalchemy.orm import relationship
 from utils.db import Base
 
 class Route(Base):
@@ -16,6 +17,10 @@ class Route(Base):
     comments = Column(String(500))
     vehicle_id = Column(Integer, ForeignKey("Vehicles.id"))
     driver_id = Column(Integer, ForeignKey("drivers.id"))
+
+     # Relaciones
+    vehicle = relationship("Vehicle", backref="routes")  # "Vehicle" debe coincidir con el nombre de la clase del modelo
+    driver = relationship("Driver", backref="routes")   # "Driver" debe coincidir con el nombre de la clase del modelo
 
 class RouteSchema:
     def __init__(self, name: str, date: str, origin_lat: float, origin_lng: float,
