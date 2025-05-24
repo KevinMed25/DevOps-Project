@@ -8,6 +8,12 @@ class Admin(Base):
     password = Column(String(255), nullable=False)
     invite_code = Column(String(50), nullable=False)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+        }
+
 class AdminSchema:
     def __init__(self, email: str, password: str, invite_code: str, id: int = None):
         self.id = id

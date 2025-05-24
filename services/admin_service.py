@@ -29,3 +29,8 @@ class AdminService:
         db = next(get_db())
         admin = db.query(Admin).filter(Admin.id == admin_id).first()
         return admin    
+    
+    def get_admins(self):
+        db = next(get_db())
+        admins = db.query(Admin).all()
+        return [admin.to_dict() for admin in admins]
