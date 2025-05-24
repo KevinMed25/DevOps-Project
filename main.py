@@ -5,10 +5,17 @@ from routes import register_routes
 from utils.db import init_db
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+from flask_cors import CORS
 
 init_db()
 load_dotenv()
 app = Flask(__name__)
+CORS(app,  
+        origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        supports_credentials=True
+    )
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config[ 'JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)

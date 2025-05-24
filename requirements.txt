@@ -5,3 +5,4 @@ pymysql
 cryptography
 flask_jwt_extended
 flake8
+flask_cors
