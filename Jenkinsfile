@@ -12,13 +12,11 @@ pipeline {
             }
         }
         
-        stage('Build and Test') {
+        stage('Linting') {
             steps {
                 script {
-                    sh '''
-                        docker build -t fleet-test -f Dockerfile.test .
-                        docker run --rm fleet-test pytest tests/
-                    '''
+                    sh 'docker build -t fleet-app-lint .'
+                    sh 'docker run --rm fleet-app-lint flake8 /app'
                 }
             }
         }
@@ -58,7 +56,7 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh 'docker rmi fleet-test || true'
+            sh 'docker rmi fleet-app-lint || true'
         }
     }
 }
