@@ -65,7 +65,7 @@ def login():
     return jsonify({
         "message": "Login exitoso",
         "access_token": access_token,
-        "admin_id": admin.id,
+        "id": admin.id,
         "email": admin.email
     }), HTTPStatus.OK
 
