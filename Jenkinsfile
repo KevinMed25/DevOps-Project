@@ -1,15 +1,15 @@
 pipeline {
     agent {
         docker {
-            // Usa una imagen con Docker + Docker Compose preinstalado
             image 'bretfisher/jenkins-docker-client:latest'
             args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
-            reuseNode true  // Forzar ejecución dentro del contenedor
+            reuseNode true  
         }
     }
     
     environment {
         DOCKER_HOST = 'unix:///var/run/docker.sock'
+        PATH = "/usr/local/bin:$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
     }
     
     stages {
@@ -22,7 +22,6 @@ pipeline {
         stage('Linting') {
             steps {
                 script {
-                    // Usa un Dockerfile específico para linting
                     sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
                     sh 'docker run --rm fleet-app-lint'
                 }
@@ -31,7 +30,7 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                sh 'docker-compose build'
+                sh script: '/bin/sh -c "docker build -t fleet-management ."', returnStdout: true
             }
         }
         
