@@ -1,14 +1,15 @@
 pipeline {
     agent {
         docker {
-            image 'docker:dind'  
-            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+            // Usa una imagen con Docker + Docker Compose preinstalado
+            image 'bretfisher/jenkins-docker-client:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
+            reuseNode true  // Forzar ejecución dentro del contenedor
         }
     }
     
     environment {
-        DOCKER_COMPOSE_VERSION = '2.0'
-        DOCKER_HOST = 'unix:///var/run/docker.sock'  
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
     }
     
     stages {
@@ -18,18 +19,10 @@ pipeline {
             }
         }
         
-        stage('Install Docker Compose') {
-            steps {
-                sh '''
-                    apk add --no-cache py3-pip
-                    pip3 install docker-compose
-                '''
-            }
-        }
-        
         stage('Linting') {
             steps {
                 script {
+                    // Usa un Dockerfile específico para linting
                     sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
                     sh 'docker run --rm fleet-app-lint'
                 }
@@ -38,9 +31,7 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                script {
-                    sh 'docker-compose build'
-                }
+                sh 'docker-compose build'
             }
         }
         
@@ -72,7 +63,7 @@ pipeline {
         always {
             cleanWs()
             script {
-                sh 'docker image inspect fleet-app-lint &>/dev/null && docker rmi fleet-app-lint || true'
+                sh 'docker rmi fleet-app-lint || true'
             }
         }
     }
