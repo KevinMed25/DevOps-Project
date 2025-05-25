@@ -3,6 +3,7 @@ from models.vehicle import VehicleSchema
 from services import VehicleService
 from http import HTTPStatus
 from utils.auth_middleware import admin_required
+from datetime import datetime
 
 
 vehicle_blueprint = Blueprint('vehicles',__name__)
@@ -34,9 +35,9 @@ def create_vehicle():
                 }), HTTPStatus.BAD_REQUEST
         
         vehicle_service = VehicleService()
-        vehicle_id = vehicle_service.createVehicle(VehicleSchema(**data))
+        vehicle = vehicle_service.createVehicle(VehicleSchema(**data))
         
-        return jsonify({"message":"vehículo creado exitosamente", "id": vehicle_id}), HTTPStatus.CREATED
+        return jsonify({"message":"vehículo creado exitosamente", "data": vehicle}), HTTPStatus.CREATED
     
     except Exception as e: 
         return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
@@ -76,10 +77,13 @@ def update_vehicle(id):
         if not exist_vehicle:
             return jsonify({"message":"vehiculo no encontrado"}), HTTPStatus.NOT_FOUND
         
-        update_vehicle_id = vehicle_service.updateVehicle(VehicleSchema(id=id, **data))
-        return jsonify({"message":"vehiculo actualizado exitosamente","id":update_vehicle_id}), HTTPStatus.OK
+        data['purchase_date'] = datetime.strptime(data['purchase_date'], "%a, %d %b %Y %H:%M:%S %Z")
+        data['entry_date'] = datetime.strptime(data['entry_date'], "%a, %d %b %Y %H:%M:%S %Z")
+
+        update_vehicle = vehicle_service.updateVehicle(VehicleSchema(id=id, **data))
+        return jsonify({"message":"vehiculo actualizado exitosamente","data":update_vehicle}), HTTPStatus.OK
     except Exception as e: 
-        return jsonify({"message": "error al actualizar el vehículo"}), HTTPStatus.INTERNAL_SERVER_ERROR
+        return jsonify({"message": "error al actualizar el vehículo", "error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
 
 @vehicle_blueprint.route('/<int:id>', methods=['DELETE'])
 @admin_required()
