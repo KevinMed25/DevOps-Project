@@ -1,13 +1,14 @@
 pipeline {
     agent {
         docker {
-            image 'docker:dind'
+            image 'docker:dind'  
             args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
     
     environment {
         DOCKER_COMPOSE_VERSION = '2.0'
+        DOCKER_HOST = 'unix:///var/run/docker.sock'  
     }
     
     stages {
@@ -17,11 +18,20 @@ pipeline {
             }
         }
         
+        stage('Install Docker Compose') {
+            steps {
+                sh '''
+                    apk add --no-cache py3-pip
+                    pip3 install docker-compose
+                '''
+            }
+        }
+        
         stage('Linting') {
             steps {
                 script {
-                    sh 'docker build -t fleet-app-lint .'
-                    sh 'docker run --rm fleet-app-lint flake8 /app'
+                    sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
+                    sh 'docker run --rm fleet-app-lint'
                 }
             }
         }
@@ -61,7 +71,9 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh 'docker rmi fleet-app-lint || true'
+            script {
+                sh 'docker image inspect fleet-app-lint &>/dev/null && docker rmi fleet-app-lint || true'
+            }
         }
     }
 }
