@@ -2,7 +2,6 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-# Copy only what's needed for linting
 COPY requirements.txt /app/
 COPY *.py /app/
 COPY controllers/ /app/controllers/
@@ -10,9 +9,7 @@ COPY models/ /app/models/
 COPY services/ /app/services/
 COPY utils/ /app/utils/
 
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the entrypoint to flake8
 ENTRYPOINT ["flake8"]
 CMD ["/app"]

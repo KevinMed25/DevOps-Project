@@ -60,10 +60,15 @@ pipeline {
     
     post {
         always {
-            cleanWs()
-            script {
-                sh 'docker rmi fleet-app-lint || true'
+            node {
+                cleanWs()
+                script {
+                    sh 'docker rmi fleet-app-lint || true'
+                }
             }
         }
     }
+}
+environment {
+    PATH+EXTRA = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 }
