@@ -51,7 +51,6 @@ pipeline {
                 DB_PASSWORD = credentials('db_password')
                 DB_HOST = credentials('db_host')
                 DB_NAME = credentials('db_name')
-                JWT_SECRET_KEY = credentials('jwt_secret_key')
                 ENV = "${BRANCH_NAME == 'main' ? 'PRODUCTION' : 'DEVELOPMENT'}"
             }
             steps {
