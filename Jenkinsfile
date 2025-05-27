@@ -1,21 +1,26 @@
 pipeline {
-    agent {
-        docker {
-            image 'bretfisher/jenkins-docker-client:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
-            reuseNode true  
-        }
-    }
+    agent any
     
     environment {
+        PATH = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         DOCKER_HOST = 'unix:///var/run/docker.sock'
-        PATH = "/usr/local/bin:$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
     }
     
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Verificación Docker') {
+            steps {
+                sh '''
+                    echo "USUARIO: $(whoami)"
+                    echo "PATH: $PATH"
+                    which docker || echo "docker NO está disponible"
+                    docker version || echo "docker NO funciona"
+                '''
             }
         }
         
@@ -66,7 +71,4 @@ pipeline {
             }
         }
     }
-}
-environment {
-    PATH = "${PATH}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 }
