@@ -1,0 +1,115 @@
+pipeline {
+    agent {
+        docker {
+            image 'bretfisher/jenkins-docker-client:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
+            reuseNode true  
+        }
+    }
+    
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['development', 'staging', 'production'], description: 'Selecciona el entorno de despliegue')
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Tag de la imagen a desplegar')
+    }
+    
+    environment {
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
+        PATH = "/usr/local/bin:$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
+        IMAGE_NAME = "fleet-management"
+        DEPLOY_ENV = "${params.ENVIRONMENT}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Prepare Environment') {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'db_user', variable: 'DB_USER'),
+                        string(credentialsId: 'db_password', variable: 'DB_PASSWORD'),
+                        string(credentialsId: 'db_host', variable: 'DB_HOST'),
+                        string(credentialsId: 'db_name', variable: 'DB_NAME'),
+                        string(credentialsId: 'jwt_secret_key', variable: 'JWT_SECRET_KEY')
+                    ]) {
+                        sh '''
+                            cat > .env << EOF
+                            ENV=${DEPLOY_ENV}
+                            DB_USER=${DB_USER}
+                            DB_PASSWORD=${DB_PASSWORD}
+                            DB_HOST=${DB_HOST}
+                            DB_NAME=${DB_NAME}
+                            JWT_SECRET_KEY=${JWT_SECRET_KEY}
+                            EOF
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Pull Latest Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker pull ${IMAGE_NAME}:${params.IMAGE_TAG}"
+                    }
+                }
+            }
+        }
+        
+        stage('Database Migration') {
+            steps {
+                script {
+                    echo "Ejecutando migraciones de base de datos..."
+                    sh 'docker-compose run --rm app flask db upgrade'
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+                retry(2)
+            }
+            steps {
+                sh '''
+                    docker-compose down
+                    docker-compose up -d
+                '''
+                echo "Aplicación desplegada en entorno ${DEPLOY_ENV}"
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                script {
+                    echo "Verificando estado de la aplicación..."
+                    sh '''
+                        # Esperar a que la aplicación esté disponible
+                        sleep 10
+                        # Verificar que la aplicación responde
+                        curl -f http://localhost:5001/ || exit 1
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Despliegue en ${DEPLOY_ENV} completado exitosamente!"
+        }
+        failure {
+            echo "El despliegue en ${DEPLOY_ENV} ha fallado!"
+            sh 'docker-compose logs'
+        }
+    }
+}

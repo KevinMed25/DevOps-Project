@@ -60,11 +60,9 @@ pipeline {
     
     post {
         always {
-            node('docker') {  // Agregar etiqueta del agente
-                cleanWs()
-                script {
-                    sh 'docker rmi fleet-app-lint || true'
-                }
+            cleanWs()
+            script {
+                sh 'docker rmi fleet-app-lint || true'
             }
         }
     }

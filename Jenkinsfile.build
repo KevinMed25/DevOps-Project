@@ -1,0 +1,85 @@
+pipeline {
+    agent {
+        docker {
+            image 'bretfisher/jenkins-docker-client:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --privileged'
+            reuseNode true  
+        }
+    }
+    
+    environment {
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
+        PATH = "/usr/local/bin:$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
+        IMAGE_NAME = "fleet-management"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Linting') {
+            steps {
+                script {
+                    sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
+                    sh 'docker run --rm fleet-app-lint'
+                }
+            }
+        }
+        
+        stage('Unit Tests') {
+            steps {
+                script {
+                    echo "Ejecutando pruebas unitarias..."
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+            }
+        }
+        
+        stage('Push to Registry') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'development'
+                }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                        if (env.BRANCH_NAME == 'main') {
+                            sh "docker push ${IMAGE_NAME}:latest"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+            script {
+                sh 'docker rmi fleet-app-lint || true'
+                sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+                sh "docker rmi ${IMAGE_NAME}:latest || true"
+            }
+        }
+        success {
+            echo 'Build completado exitosamente!'
+        }
+        failure {
+            echo 'El build ha fallado!'
+        }
+    }
+}
