@@ -28,13 +28,12 @@ def create_driver():
 @drivers_blueprint.route('/<int:id>', methods=['PUT'])
 @admin_required()
 def update_driver(id):
-
     driver = request.get_json()
     driversService = DriversService()
     if not driver:
         return jsonify({"error": "Driver not found"}), HTTPStatus.NOT_FOUND
-    resp = driversService.updateDriver(DriverSchema(id=id, **driver))
-    return jsonify(resp), HTTPStatus.OK
+    respDriver = driversService.updateDriver(DriverSchema(id=id, **driver))
+    return jsonify(respDriver), HTTPStatus.OK
 
 @drivers_blueprint.route('/<int:id>', methods=['DELETE'])
 @admin_required()

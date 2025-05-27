@@ -33,6 +33,7 @@ class DriversService:
         db.add(driver)
         db.commit()
         db.refresh(driver)
+        
         return driver.id
 
     def updateDriver(self, driver: DriverSchema):
@@ -48,7 +49,16 @@ class DriversService:
             driverToUpdate.license_number = driver.license_number
             db.commit()
             db.refresh(driverToUpdate)
-        return driverToUpdate.id
+        return {
+            "id": driverToUpdate.id,
+            "name": driverToUpdate.name,
+            "birthday": driverToUpdate.birthday,
+            "curp": driverToUpdate.curp,
+            "address": driverToUpdate.address,
+            "monthly_salary": driverToUpdate.monthly_salary,
+            "hire_date": driverToUpdate.hire_date,
+            "license_number": driverToUpdate.license_number
+        }
 
     def deleteDriver(self, driver_id: int):
         db = next(get_db())

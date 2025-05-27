@@ -15,7 +15,7 @@ class Driver(Base):
  
 class DriverSchema():
     
-    def __init__(self, name: str, birthday: str, curp: str, address: str, monthly_salary: int, hire_date: str, license_number: str, id: int= None):
+    def __init__(self, name: str, birthday: str, curp: str, address: str, monthly_salary: int, hire_date: str, license_number: str, id: int | None = None):
         self.id = id 
         self.name = name
         self.birthday = birthday
