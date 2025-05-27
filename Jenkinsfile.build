@@ -40,6 +40,14 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
+                script {
+                    echo "PATH dentro del contenedor:"
+                    sh 'echo $PATH'
+                    echo "Ubicación de docker:"
+                    sh 'which docker || echo \"docker no encontrado\"'
+                    echo "Ubicación de docker-compose:"
+                    sh 'which docker-compose || echo \"docker-compose no encontrado\"'
+                }
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
