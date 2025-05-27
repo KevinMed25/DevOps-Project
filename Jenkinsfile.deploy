@@ -36,7 +36,6 @@ pipeline {
                             DB_PASSWORD=${DB_PASSWORD}
                             DB_HOST=${DB_HOST}
                             DB_NAME=${DB_NAME}
-                            JWT_SECRET_KEY=${JWT_SECRET_KEY}
                             EOF
                         '''
                     }
