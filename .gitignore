@@ -10,3 +10,4 @@ htmlcov/
 docs/_build/
 .DS_Store
 .env
+jenkins_jobs.ini
