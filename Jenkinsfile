@@ -61,7 +61,9 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh 'docker rmi fleet-app-lint || true'
+            script {
+                sh 'docker rmi fleet-app-lint || true'
+            }
         }
     }
 }
