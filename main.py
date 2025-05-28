@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import os
 import logging
-import sys # Required for sys.stdout
+import sys
 from pythonjsonlogger import jsonlogger
 from dotenv import load_dotenv
 from routes import register_routes
