@@ -1,0 +1,24 @@
+filebeat.inputs:
+- type: filestream
+  id: flask-app-json-logs 
+  enabled: true
+  paths:
+    - /mnt/app_logs/flask_app.log 
+  parsers:
+    - ndjson: 
+        target: ""
+        overwrite_keys: true
+        add_error_key: true
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  protocol: "http"
+
+logging.level: info 
+
+setup.template.enabled: false
+setup.ilm.enabled: false
