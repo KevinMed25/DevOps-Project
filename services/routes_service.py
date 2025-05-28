@@ -1,7 +1,5 @@
 from utils.db import get_db
 from models.routes import Route, RouteSchema
-from models.drivers import Driver
-from models.vehicle import Vehicle
 from models.assignment import Assignment
 from sqlalchemy.orm import joinedload
 from typing import Dict, Tuple, List, Optional
@@ -9,15 +7,6 @@ from http import HTTPStatus
 
 class RouteService:
     VALID_STATUSES = {"completed", "failed", "in_progress", "pending"}
-
-    def is_vehicle_assigned_to_driver(self, vehicle_id: int, driver_id: int) -> bool:
-        """Verifica si un vehículo está asignado a un conductor."""
-        db = next(get_db())
-        assignment = db.query(Assignment).filter(
-            Assignment.vehicle_id == vehicle_id,
-            Assignment.driver_id == driver_id
-        ).first()
-        return assignment is not None
 
     def _validate_route_status(self, status: Optional[str]) -> str:
         """Valida y establece un estado por defecto para la ruta."""
@@ -37,22 +26,10 @@ class RouteService:
             "origin_lng": route.origin_lng,
             "destination_lat": route.destination_lat,
             "destination_lng": route.destination_lng,
-            "vehicle_id": route.vehicle_id,
-            "driver_id": route.driver_id,
             "status": route.status,
             "problem_description": route.problem_description,
             "comments": route.comments,
-            "vehicle_info": {
-                "brand": route.vehicle.brand if route.vehicle else None,
-                "model": route.vehicle.model if route.vehicle else None,
-                "license_plate": route.vehicle.license_plate if route.vehicle else None,
-                "vin": route.vehicle.vin if route.vehicle else None
-            },
-            "driver_info": {
-                "name": route.driver.name if route.driver else None,
-                "license": route.driver.license_number if route.driver else None,
-                "curp": route.driver.curp if route.driver else None
-            }
+            "assignment_id": route.assignment_id,
         }
 
     def create_route(self, route: RouteSchema) -> Tuple[int, str]:
@@ -60,33 +37,19 @@ class RouteService:
         db = next(get_db())
         
         try:
-            # Verificar existencia del vehículo
-            vehicle = db.query(Vehicle).filter(Vehicle.id == route.vehicle_id).first()
-            if not vehicle:
-                raise ValueError(f"El vehículo con ID {route.vehicle_id} no existe")
-
-            # Verificar existencia del conductor
-            driver = db.query(Driver).filter(Driver.id == route.driver_id).first()
-            if not driver:
-                raise ValueError(f"El conductor con ID {route.driver_id} no existe")
-
-            # Verificar asignación vehículo-conductor
-            assignment = db.query(Assignment).filter(
-                Assignment.vehicle_id == route.vehicle_id,
-                Assignment.driver_id == route.driver_id
-            ).first()
-            
+            # Verificar existencia de la asignación
+            assignment = db.query(Assignment).filter(Assignment.id == route.assignment_id).first()
             if not assignment:
-                raise ValueError(f"El vehículo {route.vehicle_id} no está asignado al conductor {route.driver_id}")
+                raise ValueError(f"La asignación con ID {route.assignment_id} no existe")
 
-            # Verificar ruta duplicada para el mismo vehículo y fecha
+            # Verificar ruta duplicada para la misma asignación y fecha
             existing_route = db.query(Route).filter(
-                Route.vehicle_id == route.vehicle_id,
+                Route.assignment_id == route.assignment_id,
                 Route.date == route.date
             ).first()
             
             if existing_route:
-                raise ValueError(f"El vehículo {route.vehicle_id} ya tiene una ruta programada para esta fecha")
+                raise ValueError(f"La asignación {route.assignment_id} ya tiene una ruta programada para esta fecha")
 
             # Validar y establecer estado
             validated_status = self._validate_route_status(getattr(route, 'status', None))
@@ -98,8 +61,7 @@ class RouteService:
                 origin_lng=route.origin_lng,
                 destination_lat=route.destination_lat,
                 destination_lng=route.destination_lng,
-                vehicle_id=route.vehicle_id,
-                driver_id=route.driver_id,
+                assignment_id=route.assignment_id,
                 status=validated_status,
                 problem_description=route.problem_description,
                 comments=route.comments
@@ -122,8 +84,7 @@ class RouteService:
         try:
             db = next(get_db())
             routes = db.query(Route).options(
-                joinedload(Route.vehicle),
-                joinedload(Route.driver)
+                joinedload(Route.assignment)
             ).all()
             
             if not routes:
@@ -140,8 +101,7 @@ class RouteService:
         try:
             db = next(get_db())
             route = db.query(Route).options(
-                joinedload(Route.vehicle),
-                joinedload(Route.driver)
+                joinedload(Route.assignment)
             ).filter(Route.id == route_id).first()
             
             if not route:
@@ -162,31 +122,11 @@ class RouteService:
             if not route:
                 return None, f"No se encontró la ruta con ID {route_id}"
 
-            # Obtener IDs actuales o nuevos
-            vehicle_id = getattr(route_data, 'vehicle_id', route.vehicle_id)
-            driver_id = getattr(route_data, 'driver_id', route.driver_id)
-
-            # Verificar existencia del vehículo si se está actualizando
-            if hasattr(route_data, 'vehicle_id'):
-                vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-                if not vehicle:
-                    raise ValueError(f"El vehículo con ID {vehicle_id} no existe")
-
-            # Verificar existencia del conductor si se está actualizando
-            if hasattr(route_data, 'driver_id'):
-                driver = db.query(Driver).filter(Driver.id == driver_id).first()
-                if not driver:
-                    raise ValueError(f"El conductor con ID {driver_id} no existe")
-
-            # Verificar asignación vehículo-conductor si se están actualizando
-            if hasattr(route_data, 'vehicle_id') or hasattr(route_data, 'driver_id'):
-                assignment = db.query(Assignment).filter(
-                    Assignment.vehicle_id == vehicle_id,
-                    Assignment.driver_id == driver_id
-                ).first()
-                
+            # Verificar existencia de la asignación si se está actualizando
+            if hasattr(route_data, 'assignment_id'):
+                assignment = db.query(Assignment).filter(Assignment.id == route_data.assignment_id).first()
                 if not assignment:
-                    raise ValueError(f"El vehículo {vehicle_id} no está asignado al conductor {driver_id}")
+                    raise ValueError(f"La asignación con ID {route_data.assignment_id} no existe")
 
             # Validar estado si se está actualizando
             if hasattr(route_data, 'status'):
@@ -196,7 +136,7 @@ class RouteService:
             # Actualizar campos
             for field in ['name', 'date', 'origin_lat', 'origin_lng', 
                         'destination_lat', 'destination_lng',
-                        'problem_description', 'comments', 'vehicle_id', 'driver_id']:
+                        'problem_description', 'comments', 'assignment_id']:
                 if hasattr(route_data, field):
                     setattr(route, field, getattr(route_data, field))
 
