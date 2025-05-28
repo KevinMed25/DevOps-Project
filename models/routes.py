@@ -15,17 +15,15 @@ class Route(Base):
     status = Column(String(50))  # "completed", "failed", "in_progress"
     problem_description = Column(String(500))
     comments = Column(String(500))
-    vehicle_id = Column(Integer, ForeignKey("Vehicles.id"))
-    driver_id = Column(Integer, ForeignKey("drivers.id"))
+    assignment_id = Column(Integer, ForeignKey("Assignments.id"))
 
-     # Relaciones
-    vehicle = relationship("Vehicle", backref="routes")  # "Vehicle" debe coincidir con el nombre de la clase del modelo
-    driver = relationship("Driver", backref="routes")   # "Driver" debe coincidir con el nombre de la clase del modelo
+
+    assignment = relationship("Assignment", backref="routes")  # Relación con Assignment
 
 class RouteSchema:
     def __init__(self, name: str, date: str, origin_lat: float, origin_lng: float,
-                 destination_lat: float, destination_lng: float, vehicle_id: int,
-                 driver_id: int, status: str = None, problem_description: str = None,
+                 destination_lat: float, destination_lng: float,
+                 assignment_id: int, status: str = None, problem_description: str = None,
                  comments: str = None, id: int = None):
         self.id = id
         self.name = name
@@ -37,5 +35,4 @@ class RouteSchema:
         self.status = status
         self.problem_description = problem_description
         self.comments = comments
-        self.vehicle_id = vehicle_id
-        self.driver_id = driver_id
+        self.assignment_id = assignment_id

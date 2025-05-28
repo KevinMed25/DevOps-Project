@@ -23,8 +23,7 @@ def transform_route_data(data: Dict[str, Any], existing_route: Optional[Dict] = 
         "origin_lng": data.get('start_lng', existing_route.get('origin_lng') if existing_route else None),
         "destination_lat": data.get('end_lat', existing_route.get('destination_lat') if existing_route else None),
         "destination_lng": data.get('end_lng', existing_route.get('destination_lng') if existing_route else None),
-        "vehicle_id": data.get('vehicle_id', existing_route.get('vehicle_id') if existing_route else None),
-        "driver_id": data.get('driver_id', existing_route.get('driver_id') if existing_route else None),
+        "assignment_id": data.get('assignment_id', existing_route.get('assignment_id') if existing_route else None),
         "status": data.get('status', existing_route.get('status') if existing_route else None),
         "problem_description": data.get('description', existing_route.get('problem_description') if existing_route else ''),
         "comments": data.get('comments', existing_route.get('comments') if existing_route else '')
@@ -48,8 +47,8 @@ def create_route():
         return jsonify({'message': 'El cuerpo de la solicitud está vacío'}), HTTPStatus.BAD_REQUEST
 
     required_fields = [
-        'vehicle_id', 'start_lat', 'start_lng', 'end_lat', 'end_lng',
-        'route_name', 'route_date', 'driver_id'
+        'assignment_id', 'start_lat', 'start_lng', 'end_lat', 'end_lng',
+        'route_name', 'route_date'
     ]
     
     is_valid, missing_fields = validate_required_fields(data, required_fields)
