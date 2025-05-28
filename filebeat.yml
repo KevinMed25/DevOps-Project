@@ -1,29 +1,24 @@
 filebeat.inputs:
-- type: container
+- type: filestream
+  id: flask-app-json-logs 
   enabled: true
   paths:
-    - /var/lib/docker/containers/${data.docker.container.id}/*.log
-  stream: all 
-  processors:
-    - add_docker_metadata: ~
-    - decode_json_fields:
-        fields: ["message"] 
-        target: "" 
+    - /mnt/app_logs/flask_app.log 
+  parsers:
+    - ndjson: 
+        target: ""
         overwrite_keys: true
-        add_error_key: true 
+        add_error_key: true
 
 filebeat.config.modules:
   path: ${path.config}/modules.d/*.yml
   reload.enabled: false
 
-# Define the Elasticsearch output
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
-  protocol: "http" 
+  protocol: "http"
 
-logging.level: info
-logging.to_files: false 
-logging.to_syslog: false
+logging.level: info 
 
 setup.template.enabled: false
 setup.ilm.enabled: false

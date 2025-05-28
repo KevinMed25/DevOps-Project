@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import os
 import logging
-import sys 
+import sys # Required for sys.stdout
 from pythonjsonlogger import jsonlogger
 from dotenv import load_dotenv
 from routes import register_routes
@@ -15,10 +15,15 @@ log.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
 formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(module)s %(funcName)s %(lineno)d %(message)s')
 handler.setFormatter(formatter)
-log.addHandler(handler)
+log.addHandler(handler) 
+
+file_handler = logging.FileHandler('/app/logs/flask_app.log')
+file_handler.setFormatter(formatter)
+log.addHandler(file_handler) 
 
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.addHandler(handler)
+werkzeug_logger.addHandler(handler) 
+werkzeug_logger.addHandler(file_handler) 
 werkzeug_logger.setLevel(logging.DEBUG) 
 
 init_db()

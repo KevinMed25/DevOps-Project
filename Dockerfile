@@ -13,6 +13,9 @@ COPY . /app
 # Hace ejecutable el script wait-for-it
 RUN chmod +x wait-for-it.sh
 
+# Crea el directorio de logs
+RUN mkdir -p /app/logs
+
 # Instala dependencias
 RUN pip install --upgrade pip \
  && pip install -r requirements.txt
