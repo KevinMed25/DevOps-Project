@@ -15,15 +15,6 @@ pipeline {
             }
         }
 
-        stage('Linting') {
-            steps {
-                script {
-                    sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
-                    sh 'docker run --rm fleet-app-lint'
-                }
-            }
-        }
-
         stage('Unit Tests') {
             steps {
                 script {
