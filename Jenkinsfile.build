@@ -63,7 +63,6 @@ pipeline {
         always {
             cleanWs()
             script {
-                sh 'docker rmi fleet-app-lint || true'
                 sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
                 sh "docker rmi ${IMAGE_NAME}:latest || true"
             }
