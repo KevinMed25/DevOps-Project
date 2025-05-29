@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        stage('Verificación Docker') {
+        stage('Verificación Docker') { 
             steps {
                 sh '''
                     echo "USUARIO: $(whoami)"
@@ -78,6 +78,7 @@ pipeline {
     post {
         always {
             cleanWs() 
+            script {
                 sh "docker rmi ${IMAGE_TAG_BUILD} || true" 
             }
         }
