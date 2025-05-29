@@ -10,9 +10,6 @@ RUN apk add --no-cache bash
 # Copia los archivos necesarios
 COPY . /app
 
-# Hace ejecutable el script wait-for-it
-RUN chmod +x wait-for-it.sh
-
 # Crea el directorio de logs
 RUN mkdir -p /app/logs
 

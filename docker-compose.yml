@@ -20,7 +20,7 @@ services:
       - "5001:5000" 
     depends_on:
       - db
-    command: ["./wait-for-it.sh", "db:3306", "--timeout=30", "--", "flask", "run"]
+    command: sh -c "while ! nc -z db 3306; do sleep 2; done && flask run"
     networks:
       - fleet-network
     volumes:
