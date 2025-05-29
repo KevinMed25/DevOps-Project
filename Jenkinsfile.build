@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HOST = 'unix:///var/run/docker.sock'
         PATH = "/usr/local/bin:$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
-        IMAGE_NAME = "fleet-management"
+        IMAGE_NAME = "abrahamcruz/fleet-management"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
@@ -40,17 +40,24 @@ pipeline {
 
         stage('Push to Registry') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'development'
+                expression {
+                    def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
+                    return branch == 'origin/development' || 
+                           branch == 'origin/main' ||
+                           branch == 'development' || 
+                           branch == 'main'
                 }
             }
             steps {
                 script {
+                    echo "DEBUG - Branch info:"
+                    echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+                    echo "BRANCH_NAME: ${env.BRANCH_NAME}"
+                    
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                         sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                        if (env.BRANCH_NAME == 'main') {
+                        if (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main') {
                             sh "docker push ${IMAGE_NAME}:latest"
                         }
                     }
