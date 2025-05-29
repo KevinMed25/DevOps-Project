@@ -6,6 +6,7 @@ pipeline {
     }
 
     environment {
+        PATH = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         IMAGE_NAME = "fleet-management"
         IMAGE_TAG_LATEST = "${IMAGE_NAME}:latest"
         DOCKER_HOST = 'unix:///var/run/docker.sock' 
