@@ -62,8 +62,8 @@ pipeline {
                     EOF
                 '''
                 sh '''
-                    docker-compose down
-                    docker-compose up -d
+                    docker-compose -f docker-compose.yml down
+                    docker-compose -f docker-compose.yml up -d
                 '''
                 sh '''
                     echo "Waiting for application to start..."
@@ -87,9 +87,7 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed!'
-            script {
-                sh 'docker-compose logs'
-            }
+            sh 'docker-compose -f docker-compose.yml logs'
         }
     }
 }
