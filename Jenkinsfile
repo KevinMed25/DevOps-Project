@@ -4,6 +4,13 @@ pipeline {
     environment {
         PATH = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         DOCKER_HOST = 'unix:///var/run/docker.sock'
+        IMAGE_NAME = "fleet-management" 
+        IMAGE_TAG_BUILD = "${IMAGE_NAME}:${env.BUILD_NUMBER}"
+        IMAGE_TAG_LATEST = "${IMAGE_NAME}:latest"
+    }
+
+    parameters {
+        booleanParam(name: 'PERFORM_DEPLOY', defaultValue: true, description: 'Check to deploy after build')
     }
     
     stages {
@@ -24,39 +31,45 @@ pipeline {
             }
         }
         
-        stage('Linting') {
+        stage('Build Docker Image') { 
             steps {
-                script {
-                    sh 'docker build -t fleet-app-lint -f Dockerfile.lint .'
-                    sh 'docker run --rm fleet-app-lint'
-                }
-            }
-        }
-        
-        stage('Build Docker Images') {
-            steps {
-                sh script: '/bin/sh -c "docker build -t fleet-management ."', returnStdout: true
+                sh "docker build -t ${IMAGE_TAG_BUILD} ."
+                sh "docker tag ${IMAGE_TAG_BUILD} ${IMAGE_TAG_LATEST}"
             }
         }
         
         stage('Deploy') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'development'
-                }
+                expression { params.PERFORM_DEPLOY == true }
             }
             environment {
                 DB_USER = credentials('db_user')
                 DB_PASSWORD = credentials('db_password')
                 DB_HOST = credentials('db_host')
                 DB_NAME = credentials('db_name')
-                ENV = "${BRANCH_NAME == 'main' ? 'PRODUCTION' : 'DEVELOPMENT'}"
+                APP_ENV = "development" 
             }
             steps {
                 sh '''
+                    echo "Creating .env file for deployment..."
+                    cat > .env << EOF
+                    ENV=${APP_ENV}
+                    DB_USER=${DB_USER}
+                    DB_PASSWORD=${DB_PASSWORD}
+                    DB_HOST=${DB_HOST}
+                    DB_NAME=${DB_NAME}
+                    IMAGE_TAG=${IMAGE_TAG_LATEST} 
+                    EOF
+                '''
+                sh '''
                     docker-compose down
                     docker-compose up -d
+                '''
+                sh '''
+                    echo "Waiting for application to start..."
+                    sleep 15 
+                    echo "Verifying application status..."
+                    curl -f http://localhost:5001/ || exit 1 
                 '''
             }
         }
@@ -64,9 +77,17 @@ pipeline {
     
     post {
         always {
-            cleanWs()
+            cleanWs() 
+                sh "docker rmi ${IMAGE_TAG_BUILD} || true" 
+            }
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
             script {
-                sh 'docker rmi fleet-app-lint || true'
+                sh 'docker-compose logs'
             }
         }
     }

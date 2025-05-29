@@ -12,7 +12,6 @@ services:
       - fleet-network
 
   app:
-    build: .
     container_name: app
     env_file:
       - .env
