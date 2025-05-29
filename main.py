@@ -49,11 +49,7 @@ register_routes(app)
 def root():
     """Simple root endpoint that returns API status"""
     logger = logging.getLogger(__name__) 
-    logger.debug("This is a debug log from the root route.")
     logger.info("This is an info log from the root route.")
-    logger.warning("This is a warning log from the root route.")
-    logger.error("This is an error log from the root route.")
-    logger.critical("This is a critical log from the root route.")
     return jsonify({
         "status": "API is running",
         "version": "1.0.0",
