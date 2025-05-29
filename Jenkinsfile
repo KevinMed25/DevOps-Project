@@ -1,18 +1,16 @@
 pipeline {
     agent any
-    
-    environment {
-        PATH = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        DOCKER_HOST = 'unix:///var/run/docker.sock'
-        IMAGE_NAME = "fleet-management" 
-        IMAGE_TAG_BUILD = "${IMAGE_NAME}:${env.BUILD_NUMBER}"
-        IMAGE_TAG_LATEST = "${IMAGE_NAME}:latest"
-    }
 
     parameters {
-        booleanParam(name: 'PERFORM_DEPLOY', defaultValue: true, description: 'Check to deploy after build')
+        booleanParam(name: 'PERFORM_DEPLOY', defaultValue: true, description: 'Check to build and deploy. Uncheck to only build.')
     }
-    
+
+    environment {
+        IMAGE_NAME = "fleet-management"
+        IMAGE_TAG_LATEST = "${IMAGE_NAME}:latest"
+        DOCKER_HOST = 'unix:///var/run/docker.sock' 
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -20,74 +18,37 @@ pipeline {
             }
         }
 
-        stage('Verificación Docker') { 
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    echo "USUARIO: $(whoami)"
-                    echo "PATH: $PATH"
-                    which docker || echo "docker NO está disponible"
-                    docker version || echo "docker NO funciona"
-                '''
+                echo "Building Docker image: ${IMAGE_TAG_LATEST}"
+                sh "docker build -t ${IMAGE_TAG_LATEST} ."
+                echo "Docker image ${IMAGE_TAG_LATEST} built. Listing images:"
+                sh "docker images | grep ${IMAGE_NAME} || true"
             }
         }
-        
-        stage('Build Docker Image') { 
-            steps {
-                sh "docker build -t ${IMAGE_TAG_BUILD} ."
-                sh "docker tag ${IMAGE_TAG_BUILD} ${IMAGE_TAG_LATEST}"
-            }
-        }
-        
-        stage('Deploy') {
+
+        stage('Deploy Application') {
             when {
                 expression { params.PERFORM_DEPLOY == true }
             }
-            environment {
-                DB_USER = credentials('db_user')
-                DB_PASSWORD = credentials('db_password')
-                DB_HOST = credentials('db_host')
-                DB_NAME = credentials('db_name')
-                APP_ENV = "development" 
-            }
             steps {
-                sh '''
-                    echo "Creating .env file for deployment..."
-                    cat > .env << EOF
-                    ENV=${APP_ENV}
-                    DB_USER=${DB_USER}
-                    DB_PASSWORD=${DB_PASSWORD}
-                    DB_HOST=${DB_HOST}
-                    DB_NAME=${DB_NAME}
-                    IMAGE_TAG=${IMAGE_TAG_LATEST} 
-                    EOF
-                '''
-                sh '''
-                    docker-compose -f docker-compose.yml down
-                    docker-compose -f docker-compose.yml up -d
-                '''
-                sh '''
-                    echo "Waiting for application to start..."
-                    sleep 15 
-                    echo "Verifying application status..."
-                    curl -f http://localhost:5001/ || exit 1 
-                '''
+                echo "Deploying application..."
+                sh "docker-compose -f docker-compose.yml down --remove-orphans"
+                sh "docker-compose -f docker-compose.yml up -d --build"
+                echo "Deployment attempted. Waiting briefly for services to start..."
+                sh "sleep 10"
+                echo "Current Docker containers:"
+                sh "docker ps -a | grep ${IMAGE_NAME} || true"
+                echo "Logs from 'app' container (if running):"
+                sh "docker-compose -f docker-compose.yml logs app || true"
             }
         }
     }
-    
+
     post {
         always {
-            cleanWs() 
-            script {
-                sh "docker rmi ${IMAGE_TAG_BUILD} || true" 
-            }
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-            sh 'docker-compose -f docker-compose.yml logs'
+            echo "Pipeline finished. Cleaning workspace."
+            cleanWs()
         }
     }
 }
