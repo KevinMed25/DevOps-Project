@@ -1,0 +1,38 @@
+# Ignorar directorios de Python
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+venv/
+.venv/
+
+# Ignorar archivos de configuración y entorno
+.env
+.env.*
+
+# Ignorar directorios de control de versiones
+.git/
+.gitignore
+
+# Ignorar archivos de IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.bak
+*~
+
+# Ignorar archivos de logs y temporales
+*.log
+tmp/
+
+# Ignorar archivos de pruebas y linting que no son necesarios en producción
+Dockerfile.lint
+Jenkinsfile*
+
+# Ignorar el propio .dockerignore
+.dockerignore
+
+# Ignorar la carpeta env/ 
+env/
+
+filebeat.yml
